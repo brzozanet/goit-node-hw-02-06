@@ -1,25 +1,32 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
-const nanoid = require("nanoid");
-
-console.log(nanoid());
+const nanoid = require("nanoid-esm");
 
 const router = express.Router();
+
 const contactsPath = path.resolve("./models/contacts.json");
 
-const getContacts = async () => {
+const listContacts = async () => {
   const data = await fs.readFile(contactsPath, "utf-8");
   const contacts = JSON.parse(data);
   return contacts;
 };
 
-// NOTE: why a new getContactById fn?
-// const getContactById = async () => {}
+const getById = async (contactId) => {
+  const data = await fs.readFile(contactsPath, "utf-8");
+  const contacts = JSON.parse(data);
+
+  const contact = contacts.find((contact) => contact.id === contactId);
+
+  return contact;
+};
+
+// addContact(body);
 
 router.get("/", async (request, response, next) => {
   try {
-    const contacts = await getContacts();
+    const contacts = await listContacts();
     response.json(contacts);
     console.log("All contacts downloaded successfully");
   } catch (error) {
@@ -31,17 +38,13 @@ router.get("/", async (request, response, next) => {
 router.get("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
-    const contacts = await getContacts();
-    const selectedContact = contacts.find(
-      (contact) => contact.id === contactId
-    );
+    const contact = await getById(contactId);
 
-    if (selectedContact) {
-      response.json(selectedContact);
+    if (contact) {
+      response.json(contact);
       console.log("Selected contact downloaded successfully");
     } else {
-      // NOTE: can I not repeat the code? DRY -> app.js L:18
-      response.status(404).json({ message: "Not found" });
+      next();
       console.log("Contact not found");
     }
   } catch (error) {
@@ -51,7 +54,12 @@ router.get("/:contactId", async (request, response, next) => {
 });
 
 router.post("/", async (request, response, next) => {
-  response.json({ message: "template message" });
+  const newContact = {
+    id: nanoid(),
+    name,
+    email,
+    phone,
+  };
 });
 
 router.delete("/:contactId", async (request, response, next) => {
