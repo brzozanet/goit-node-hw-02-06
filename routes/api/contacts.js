@@ -24,6 +24,7 @@ const getById = async (contactId) => {
 
 // addContact(body);
 // removeContact(id);
+// updateContact(contactId, body);
 
 router.get("/", async (request, response, next) => {
   try {
@@ -93,7 +94,26 @@ router.delete("/:contactId", async (request, response, next) => {
 });
 
 router.put("/:contactId", async (request, response, next) => {
-  response.json({ message: "template message" });
+  const {
+    params: { contactId },
+    body,
+  } = request;
+
+  console.log(body);
+
+  if (Object.keys(body).length === 0) {
+    return response.status(400).json({ message: "missing fields" });
+  } else {
+    const data = await fs.readFile(contactsPath, "utf-8");
+    const contacts = JSON.parse(data);
+    const newContacts = contacts.map((contact) =>
+      contact.id === contactId ? { ...contact, ...body } : contact
+    );
+    await fs.writeFile(contactsPath, JSON.stringify(newContacts, null, 2));
+    return response
+      .status(200)
+      .json(newContacts.find((contact) => contact.id === contactId));
+  }
 });
 
 module.exports = router;
