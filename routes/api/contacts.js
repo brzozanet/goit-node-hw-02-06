@@ -1,6 +1,9 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
+const nanoid = require("nanoid");
+
+console.log(nanoid());
 
 const router = express.Router();
 const contactsPath = path.resolve("./models/contacts.json");
