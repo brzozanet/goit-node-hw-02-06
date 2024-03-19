@@ -5,18 +5,20 @@ const path = require("path");
 const router = express.Router();
 const contactsPath = path.resolve("./models/contacts.json");
 
-const listContacts = async () => {
+const getContacts = async () => {
   const data = await fs.readFile(contactsPath, "utf-8");
   const contacts = JSON.parse(data);
-  console.log("listContacts: contacts downloaded successfully");
   return contacts;
 };
 
+// NOTE: why a new getContactById fn?
+// const getContactById = async () => {}
+
 router.get("/", async (request, response, next) => {
   try {
-    const contacts = await listContacts();
+    const contacts = await getContacts();
     response.json(contacts);
-    console.log("GET: contacts downloaded successfully");
+    console.log("All contacts downloaded successfully");
   } catch (error) {
     console.error("Error reading contacts file: ", error);
     next(error);
@@ -24,7 +26,25 @@ router.get("/", async (request, response, next) => {
 });
 
 router.get("/:contactId", async (request, response, next) => {
-  response.json({ message: "template message" });
+  try {
+    const contactId = request.params.contactId;
+    const contacts = await getContacts();
+    const selectedContact = contacts.find(
+      (contact) => contact.id === contactId
+    );
+
+    if (selectedContact) {
+      response.json(selectedContact);
+      console.log("Selected contact downloaded successfully");
+    } else {
+      // NOTE: can I not repeat the code? DRY -> app.js L:18
+      response.status(404).json({ message: "Not found" });
+      console.log("Contact not found");
+    }
+  } catch (error) {
+    console.error("Error reading contacts file: ", error);
+    next(error);
+  }
 });
 
 router.post("/", async (request, response, next) => {
