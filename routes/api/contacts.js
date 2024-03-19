@@ -1,35 +1,12 @@
 const express = require("express");
-const fs = require("fs/promises");
-const path = require("path");
-const nanoid = require("nanoid-esm");
-
 const router = express.Router();
 
-const contactsPath = path.resolve("./models/contacts.json");
-
-const listContacts = async () => {
-  const data = await fs.readFile(contactsPath, "utf-8");
-  const contacts = JSON.parse(data);
-  return contacts;
-};
-
-const getById = async (contactId) => {
-  const data = await fs.readFile(contactsPath, "utf-8");
-  const contacts = JSON.parse(data);
-
-  const contact = contacts.find((contact) => contact.id === contactId);
-
-  return contact;
-};
-
-// addContact(body);
-// removeContact(id);
-// updateContact(contactId, body);
+const listContacts = require("../../models/contacts.js");
 
 router.get("/", async (request, response, next) => {
   try {
-    const contacts = await listContacts();
-    response.json(contacts);
+    const contactsList = await listContacts(); // NOTE: WTF?
+    response.json(contactsList);
     console.log("All contacts downloaded successfully");
   } catch (error) {
     console.error("Error reading contacts file: ", error);
@@ -40,14 +17,14 @@ router.get("/", async (request, response, next) => {
 router.get("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
-    const contact = await getById(contactId);
+    const selectedContact = await getContactById(contactId); // NOTE: WTF?
 
-    if (contact) {
-      response.json(contact);
+    if (selectedContact) {
+      response.json(selectedContact);
       console.log("Selected contact downloaded successfully");
     } else {
-      next();
       console.log("Contact not found");
+      next();
     }
   } catch (error) {
     console.error("Error reading contacts file: ", error);
@@ -79,17 +56,19 @@ router.post("/", async (request, response, next) => {
 });
 
 router.delete("/:contactId", async (request, response, next) => {
-  const contactId = request.params.contactId;
+  try {
+    const contactId = request.params.contactId;
+    const deletedContact = await removeContact(contactId); // NOTE: WTF?
 
-  const data = await fs.readFile(contactsPath, "utf-8");
-  const contacts = JSON.parse(data);
-
-  if (contacts.find((contact) => contact.id === contactId)) {
-    const newContacts = contacts.filter((contact) => contact.id !== contactId);
-    await fs.writeFile(contactsPath, JSON.stringify(newContacts, null, 2));
-    return response.status(200).json({ message: "contact deleted" });
-  } else {
-    next();
+    if (deletedContact) {
+      return response.status(200).json({ message: "contact deleted" });
+    } else {
+      console.log("Contact not found");
+      next();
+    }
+  } catch (error) {
+    console.error("Error during delete contact: ", error);
+    next(error); // NOTE: why not { message: "Not found" }?
   }
 });
 
