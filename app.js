@@ -18,7 +18,7 @@ app.use((request, response) => {
   response.status(404).json({ message: "Not found" });
 });
 
-app.use((error, request, response, next) => {
+app.use((error, request, response) => {
   response.status(500).json({ message: error.message });
 });
 
