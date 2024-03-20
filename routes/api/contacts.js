@@ -1,11 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
-const listContacts = require("../../models/contacts.js");
+const {
+  listContacts,
+  getContactById,
+  addContact,
+  removeContact,
+  updateContact,
+} = require("../../models/contacts.js");
 
 router.get("/", async (request, response, next) => {
   try {
-    const contactsList = await listContacts(); // NOTE: WTF?
+    const contactsList = await listContacts();
     response.json(contactsList);
     console.log("All contacts downloaded successfully");
   } catch (error) {
@@ -17,7 +23,7 @@ router.get("/", async (request, response, next) => {
 router.get("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
-    const selectedContact = await getContactById(contactId); // NOTE: WTF?
+    const selectedContact = await getContactById(contactId);
 
     if (selectedContact) {
       response.json(selectedContact);
@@ -33,32 +39,27 @@ router.get("/:contactId", async (request, response, next) => {
 });
 
 router.post("/", async (request, response, next) => {
-  console.log(request.body);
-  const { name, email, phone } = request.body;
+  try {
+    const body = request.body;
+    const addedContact = await addContact(body);
 
-  if (!name || !email || !phone) {
-    return response
-      .status(400)
-      .json({ message: "missing required name - field" });
-  } else {
-    const newContact = {
-      id: nanoid(),
-      name,
-      email,
-      phone,
-    };
-    const data = await fs.readFile(contactsPath, "utf-8");
-    const contacts = JSON.parse(data);
-    contacts.push(newContact);
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-    return response.json(contacts);
+    if (!body.name || !body.email || !body.phone) {
+      return response
+        .status(400)
+        .json({ message: "missing required field(s)" });
+    } else {
+      return response.json(addedContact);
+    }
+  } catch (error) {
+    console.error("Error during add contact: ", error);
+    next(error);
   }
 });
 
 router.delete("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
-    const deletedContact = await removeContact(contactId); // NOTE: WTF?
+    const deletedContact = await removeContact(contactId);
 
     if (deletedContact) {
       return response.status(200).json({ message: "contact deleted" });
@@ -73,25 +74,16 @@ router.delete("/:contactId", async (request, response, next) => {
 });
 
 router.put("/:contactId", async (request, response, next) => {
-  const {
-    params: { contactId },
-    body,
-  } = request;
-
-  console.log(body);
+  const contactId = request.params.contactId;
+  const body = request.body;
+  const updatedContact = await updateContact(contactId, body);
 
   if (Object.keys(body).length === 0) {
     return response.status(400).json({ message: "missing fields" });
   } else {
-    const data = await fs.readFile(contactsPath, "utf-8");
-    const contacts = JSON.parse(data);
-    const newContacts = contacts.map((contact) =>
-      contact.id === contactId ? { ...contact, ...body } : contact
-    );
-    await fs.writeFile(contactsPath, JSON.stringify(newContacts, null, 2));
     return response
       .status(200)
-      .json(newContacts.find((contact) => contact.id === contactId));
+      .json(updatedContact.find((contact) => contact.id === contactId));
   }
 });
 
