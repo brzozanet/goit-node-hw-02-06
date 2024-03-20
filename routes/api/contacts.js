@@ -10,10 +10,16 @@ const {
   updateContact,
 } = require("../../models/contacts.js");
 
-const userPattern = Joi.object({
+const userPatternPOST = Joi.object({
   name: Joi.string().min(5).required(),
   email: Joi.string().email().required(),
   phone: Joi.string().min(9).required(),
+});
+
+const userPatternPUT = Joi.object({
+  name: Joi.string().min(5),
+  email: Joi.string().email(),
+  phone: Joi.string().min(9),
 });
 
 router.get("/", async (request, response, next) => {
@@ -68,17 +74,20 @@ router.get("/:contactId", async (request, response, next) => {
 router.post("/", async (request, response, next) => {
   try {
     const body = request.body;
-    const { error } = userPattern.validate(body);
+    const { error } = userPatternPOST.validate(body);
 
     if (error) {
-      const errorMessage = error.details[0].message;
-      return response.status(400).json({ message: `${errorMessage}` });
+      const validatingErrorMessage = error.details[0].message;
+      return response
+        .status(400)
+        .json({ message: `${validatingErrorMessage}` });
     }
 
     const addedContact = await addContact(body);
-    return response.json(addedContact);
+    response.json(addedContact);
+    console.log("Contact added successfully");
   } catch (error) {
-    console.error("Error during add contact: ", error);
+    console.error("Error during adding contact: ", error);
     next(error);
   }
 });
@@ -89,7 +98,8 @@ router.delete("/:contactId", async (request, response, next) => {
     const deletedContact = await removeContact(contactId);
 
     if (deletedContact) {
-      return response.status(200).json({ message: "contact deleted" });
+      response.status(200).json({ message: "contact deleted" });
+      console.log("Contact deleted successfully");
     } else {
       console.log("Contact not found");
       next();
@@ -100,17 +110,48 @@ router.delete("/:contactId", async (request, response, next) => {
   }
 });
 
-router.put("/:contactId", async (request, response, next) => {
-  const contactId = request.params.contactId;
-  const body = request.body;
-  const updatedContact = await updateContact(contactId, body);
+// NOTE: basic validation
+// router.put("/:contactId", async (request, response, next) => {
+//   try {
+//     const body = request.body;
+//     const contactId = request.params.contactId;
+//     const updatedContact = await updateContact(contactId, body);
 
-  if (Object.keys(body).length === 0) {
-    return response.status(400).json({ message: "missing fields" });
-  } else {
-    return response
+//     if (Object.keys(body).length === 0) {
+//       return response.status(400).json({ message: "missing fields" });
+//     } else {
+//       return response
+//         .status(200)
+//         .json(updatedContact.find((contact) => contact.id === contactId));
+//     }
+//   } catch (error) {
+//     console.error("Error during editing contact: ", error);
+//     next(error);
+//   }
+// });
+
+// NOTE: joi validation
+router.put("/:contactId", async (request, response, next) => {
+  try {
+    const body = request.body;
+    const { error } = userPatternPUT.validate(body);
+
+    if (error) {
+      const validatingErrorMessage = error.details[0].message;
+      return response
+        .status(400)
+        .json({ message: `${validatingErrorMessage}` });
+    }
+
+    const contactId = request.params.contactId;
+    const updatedContact = await updateContact(contactId, body);
+    response
       .status(200)
       .json(updatedContact.find((contact) => contact.id === contactId));
+    console.log("Contact edited successfully");
+  } catch (error) {
+    console.error("Error during editing contact: ", error);
+    next(error);
   }
 });
 
