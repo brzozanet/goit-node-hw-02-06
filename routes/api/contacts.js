@@ -10,13 +10,13 @@ const {
   updateContact,
 } = require("../../models/contacts.js");
 
-const userPatternPOST = Joi.object({
+const userSchemaPOST = Joi.object({
   name: Joi.string().min(5).required(),
   email: Joi.string().email().required(),
   phone: Joi.string().min(9).required(),
 });
 
-const userPatternPUT = Joi.object({
+const userSchemaPATCH = Joi.object({
   name: Joi.string().min(5),
   email: Joi.string().email(),
   phone: Joi.string().min(9),
@@ -51,30 +51,11 @@ router.get("/:contactId", async (request, response, next) => {
   }
 });
 
-// NOTE: basic validation
-// router.post("/", async (request, response, next) => {
-//   try {
-//     const body = request.body;
-//     const addedContact = await addContact(body);
-
-//     if (!body.name || !body.email || !body.phone) {
-//       return response
-//         .status(400)
-//         .json({ message: "missing required field(s)" });
-//     } else {
-//       return response.json(addedContact);
-//     }
-//   } catch (error) {
-//     console.error("Error during add contact: ", error);
-//     next(error);
-//   }
-// });
-
 // NOTE: joi validation
 router.post("/", async (request, response, next) => {
   try {
     const body = request.body;
-    const { error } = userPatternPOST.validate(body);
+    const { error } = userSchemaPOST.validate(body);
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -95,9 +76,15 @@ router.post("/", async (request, response, next) => {
 router.delete("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
-    const deletedContact = await removeContact(contactId);
+    const contactsList = await listContacts();
+    const isContactExist = !!contactsList.find(
+      (contact) => contact.id === contactId
+    );
 
-    if (deletedContact) {
+    console.log(isContactExist);
+
+    if (isContactExist) {
+      await removeContact(contactId);
       response.status(200).json({ message: "contact deleted" });
       console.log("Contact deleted successfully");
     } else {
@@ -110,7 +97,52 @@ router.delete("/:contactId", async (request, response, next) => {
   }
 });
 
+// NOTE: joi validation
+router.patch("/:contactId", async (request, response, next) => {
+  try {
+    const body = request.body;
+    const { error } = userSchemaPATCH.validate(body);
+
+    if (error) {
+      const validatingErrorMessage = error.details[0].message;
+      return response
+        .status(400)
+        .json({ message: `${validatingErrorMessage}` });
+    }
+
+    const contactId = request.params.contactId;
+    const updatedContact = await updateContact(contactId, body);
+    response
+      .status(200)
+      .json(updatedContact.find((contact) => contact.id === contactId));
+    console.log("Contact updated successfully");
+  } catch (error) {
+    console.error("Error during updating contact: ", error);
+    next(error);
+  }
+});
+
+module.exports = router;
+
 // NOTE: basic validation
+// router.post("/", async (request, response, next) => {
+//   try {
+//     const body = request.body;
+//     const addedContact = await addContact(body);
+
+//     if (!body.name || !body.email || !body.phone) {
+//       return response
+//         .status(400)
+//         .json({ message: "missing required field(s)" });
+//     } else {
+//       return response.json(addedContact);
+//     }
+//   } catch (error) {
+//     console.error("Error during add contact: ", error);
+//     next(error);
+//   }
+// });
+
 // router.put("/:contactId", async (request, response, next) => {
 //   try {
 //     const body = request.body;
@@ -129,30 +161,3 @@ router.delete("/:contactId", async (request, response, next) => {
 //     next(error);
 //   }
 // });
-
-// NOTE: joi validation
-router.put("/:contactId", async (request, response, next) => {
-  try {
-    const body = request.body;
-    const { error } = userPatternPUT.validate(body);
-
-    if (error) {
-      const validatingErrorMessage = error.details[0].message;
-      return response
-        .status(400)
-        .json({ message: `${validatingErrorMessage}` });
-    }
-
-    const contactId = request.params.contactId;
-    const updatedContact = await updateContact(contactId, body);
-    response
-      .status(200)
-      .json(updatedContact.find((contact) => contact.id === contactId));
-    console.log("Contact edited successfully");
-  } catch (error) {
-    console.error("Error during editing contact: ", error);
-    next(error);
-  }
-});
-
-module.exports = router;
