@@ -81,8 +81,6 @@ router.delete("/:contactId", async (request, response, next) => {
       (contact) => contact.id === contactId
     );
 
-    console.log(isContactExist);
-
     if (isContactExist) {
       await removeContact(contactId);
       response.status(200).json({ message: "contact deleted" });
@@ -93,7 +91,7 @@ router.delete("/:contactId", async (request, response, next) => {
     }
   } catch (error) {
     console.error("Error during delete contact: ", error);
-    next(error); // NOTE: why not { message: "Not found" }?
+    next(error);
   }
 });
 
