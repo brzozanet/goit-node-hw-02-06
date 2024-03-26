@@ -56,7 +56,6 @@ router.get("/:contactId", async (request, response, next) => {
   }
 });
 
-// NOTE: joi validation
 router.post("/", async (request, response, next) => {
   try {
     const body = request.body;
@@ -100,7 +99,6 @@ router.delete("/:contactId", async (request, response, next) => {
   }
 });
 
-// NOTE: joi validation
 router.patch("/:contactId", async (request, response, next) => {
   try {
     const body = request.body;
