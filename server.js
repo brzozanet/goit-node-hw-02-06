@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 const server = async () => {
   try {
     const mongooseOptions = {
-      useUnifiedTopology: true,
+      // useUnifiedTopology: true,
     };
 
     await mongoose.connect(process.env.URI_DATABASE, mongooseOptions);
