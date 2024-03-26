@@ -8,7 +8,8 @@ const {
   addContact,
   removeContact,
   updateContact,
-} = require("../../models/contacts.js");
+  updateStatusContact,
+} = require("../../service/index");
 
 const userSchemaPOST = Joi.object({
   name: Joi.string().min(5).required(),
@@ -20,6 +21,10 @@ const userSchemaPATCH = Joi.object({
   name: Joi.string().min(5),
   email: Joi.string().email(),
   phone: Joi.string().min(9),
+});
+
+const userSchemaFavorite = Joi.object({
+  favorite: Joi.boolean(),
 });
 
 router.get("/", async (request, response, next) => {
@@ -110,13 +115,31 @@ router.patch("/:contactId", async (request, response, next) => {
 
     const contactId = request.params.contactId;
     const updatedContact = await updateContact(contactId, body);
-    response
-      .status(200)
-      .json(updatedContact.find((contact) => contact.id === contactId));
+    response.status(200).json(updatedContact);
     console.log("Contact updated successfully");
   } catch (error) {
     console.error("Error during updating contact: ", error);
     next(error);
+  }
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  try {
+    const body = req.body;
+    const { error } = userSchemaFavorite.validate(body);
+
+    if (error) {
+      const validatingErrorMessage = error.details[0].message;
+      return res.status(400).json({ message: `${validatingErrorMessage}` });
+    }
+
+    const contactId = req.params.contactId;
+    const updatedStatusContact = await updateStatusContact(contactId, body);
+    res.status(200).json(updatedStatusContact);
+    console.log("Contact updated successfully");
+  } catch (error) {
+    console.error("Error during updating contact: ", error);
+    next();
   }
 });
 
