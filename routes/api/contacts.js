@@ -121,19 +121,21 @@ router.patch("/:contactId", async (request, response, next) => {
   }
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", async (request, response, next) => {
   try {
-    const body = req.body;
+    const body = request.body;
     const { error } = userSchemaFavorite.validate(body);
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
-      return res.status(400).json({ message: `${validatingErrorMessage}` });
+      return response
+        .status(400)
+        .json({ message: `${validatingErrorMessage}` });
     }
 
-    const contactId = req.params.contactId;
+    const contactId = request.params.contactId;
     const updatedStatusContact = await updateStatusContact(contactId, body);
-    res.status(200).json(updatedStatusContact);
+    response.status(200).json(updatedStatusContact);
     console.log("Contact updated successfully");
   } catch (error) {
     console.error("Error during updating contact: ", error);
