@@ -1,5 +1,5 @@
 const express = require("express");
-const Joi = require("joi");
+const joi = require("joi");
 const router = express.Router();
 
 const {
@@ -11,20 +11,20 @@ const {
   updateStatusContact,
 } = require("../../service/index");
 
-const contactSchemaPOST = Joi.object({
-  name: Joi.string().min(5).required(),
-  email: Joi.string().email().required(),
-  phone: Joi.string().min(9).required(),
+const contactSchemaPOST = joi.object({
+  name: joi.string().min(5).required(),
+  email: joi.string().email().required(),
+  phone: joi.string().min(9).required(),
 });
 
-const contactSchemaPATCH = Joi.object({
-  name: Joi.string().min(5),
-  email: Joi.string().email(),
-  phone: Joi.string().min(9),
+const contactSchemaPATCH = joi.object({
+  name: joi.string().min(5),
+  email: joi.string().email(),
+  phone: joi.string().min(9),
 });
 
-const userSchemaFavorite = Joi.object({
-  favorite: Joi.boolean(),
+const userSchemaFavorite = joi.object({
+  favorite: joi.boolean(),
 });
 
 router.get("/", async (request, response, next) => {
