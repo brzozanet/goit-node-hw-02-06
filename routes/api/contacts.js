@@ -11,13 +11,13 @@ const {
   updateStatusContact,
 } = require("../../service/index");
 
-const userSchemaPOST = Joi.object({
+const contactSchemaPOST = Joi.object({
   name: Joi.string().min(5).required(),
   email: Joi.string().email().required(),
   phone: Joi.string().min(9).required(),
 });
 
-const userSchemaPATCH = Joi.object({
+const contactSchemaPATCH = Joi.object({
   name: Joi.string().min(5),
   email: Joi.string().email(),
   phone: Joi.string().min(9),
@@ -59,7 +59,7 @@ router.get("/:contactId", async (request, response, next) => {
 router.post("/", async (request, response, next) => {
   try {
     const body = request.body;
-    const { error } = userSchemaPOST.validate(body);
+    const { error } = contactSchemaPOST.validate(body);
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -102,7 +102,7 @@ router.delete("/:contactId", async (request, response, next) => {
 router.patch("/:contactId", async (request, response, next) => {
   try {
     const body = request.body;
-    const { error } = userSchemaPATCH.validate(body);
+    const { error } = contactSchemaPATCH.validate(body);
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
