@@ -52,7 +52,7 @@ router.get("/:contactId", async (request, response, next) => {
     }
   } catch (error) {
     console.error("Error reading contacts file: ", error);
-    next(error);
+    next();
   }
 });
 
@@ -73,7 +73,7 @@ router.post("/", async (request, response, next) => {
     console.log("Contact added successfully");
   } catch (error) {
     console.error("Error during adding contact: ", error);
-    next(error);
+    next();
   }
 });
 
@@ -117,7 +117,7 @@ router.patch("/:contactId", async (request, response, next) => {
     console.log("Contact updated successfully");
   } catch (error) {
     console.error("Error during updating contact: ", error);
-    next(error);
+    next();
   }
 });
 
