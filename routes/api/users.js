@@ -9,7 +9,7 @@ const { joiPasswordExtendCore } = require("joi-password");
 const joiPassword = joi.extend(joiPasswordExtendCore);
 
 const Users = require("../../service/schemas/users");
-const { addUser, loginUser } = require("../../service/index");
+const { addUser } = require("../../service/index");
 
 const userSchema = joi.object({
   email: joi.string().email().required(),

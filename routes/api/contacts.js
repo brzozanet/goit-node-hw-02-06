@@ -2,6 +2,8 @@ const express = require("express");
 const joi = require("joi");
 const router = express.Router();
 
+// const authenticateToken = require("../../middlewares/authenticate");
+
 const {
   listContacts,
   getContactById,
