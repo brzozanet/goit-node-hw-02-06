@@ -1,18 +1,20 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
 const joi = require("joi");
 const { joiPasswordExtendCore } = require("joi-password");
 const joiPassword = joi.extend(joiPasswordExtendCore);
 
 const { addUser } = require("../../service/index");
+const Users = require("../../service/schemas/users");
 
 const userSchema = joi.object({
   email: joi.string().email().required(),
   password: joiPassword
     .string()
     .min(8)
-    .minOfSpecialCharacters(1)
+    // .minOfSpecialCharacters(1)
     .minOfLowercase(1)
     .minOfUppercase(1)
     .minOfNumeric(1)
@@ -26,8 +28,13 @@ router.post("/signup", async (request, response, next) => {
   try {
     const body = request.body;
     const { error } = userSchema.validate(body);
+    const existingUser = await Users.findOne({ email: body.email });
 
-    console.log(error);
+    if (existingUser) {
+      return response
+        .status(409)
+        .json({ message: `Email ${body.email} is already in use` });
+    }
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -36,7 +43,13 @@ router.post("/signup", async (request, response, next) => {
         .json({ message: `${validatingErrorMessage}` });
     }
 
-    const addedUser = await addUser(body);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(body.password, salt);
+
+    const addedUser = await addUser({
+      email: body.email,
+      password: hashedPassword,
+    });
     response.json(addedUser);
     console.log("User signup successfully");
   } catch (error) {
