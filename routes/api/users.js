@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const joi = require("joi");
 const { joiPasswordExtendCore } = require("joi-password");
@@ -88,7 +90,20 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `Email or password is wrong` });
     }
 
-    response.json({ message: `OK` });
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    existingUser.token = token;
+    await existingUser.save();
+
+    response.json({
+      token: `${existingUser.token}`,
+      user: {
+        email: `${existingUser.email}`,
+        subscription: `${existingUser.subscription}`,
+      },
+    });
     console.log("User login successfully");
   } catch (error) {
     console.error("Error during login: ", error);
