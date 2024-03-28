@@ -111,4 +111,15 @@ router.post("/login", async (request, response, next) => {
   }
 });
 
+router.get("/logout", async (request, response, next) => {
+  try {
+    const body = request.body;
+    // const loggedUser
+    console.log(body);
+  } catch (error) {
+    console.error("Error during logout: ", error);
+    next();
+  }
+});
+
 module.exports = router;
