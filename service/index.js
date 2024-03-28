@@ -29,6 +29,10 @@ const addUser = async (user) => {
   return Users.create(user);
 };
 
+const loginUser = async (user) => {
+  return Users.findOne(user);
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -37,4 +41,5 @@ module.exports = {
   updateContact,
   updateStatusContact,
   addUser,
+  loginUser,
 };
