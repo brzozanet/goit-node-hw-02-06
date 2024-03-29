@@ -11,6 +11,8 @@ const joiPassword = joi.extend(joiPasswordExtendCore);
 const Users = require("../../service/schemas/users");
 const { addUser } = require("../../service/index");
 
+const authenticateToken = require("../../middlewares/authenticate");
+
 const userSchema = joi.object({
   email: joi.string().email().required(),
   password: joiPassword
@@ -111,9 +113,10 @@ router.post("/login", async (request, response, next) => {
   }
 });
 
-router.get("/logout", async (request, response, next) => {
+router.get("/logout", authenticateToken, async (request, response, next) => {
   try {
-    // const loggedUser
+    const user = request.user;
+    console.log(user.token);
   } catch (error) {
     console.error("Error during logout: ", error);
     next();
@@ -121,3 +124,37 @@ router.get("/logout", async (request, response, next) => {
 });
 
 module.exports = router;
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+// router.get("/logout", authenticateToken, async (request, response, next) => {
+//   try {
+//     const user = request.user;
+
+//     if (!user) {
+//       return response.status(401).json({ message: `Not authorized` });
+//     }
+
+//     user.token = null;
+//     await user.save();
+
+//     response.json({ message: "Logout successful" });
+//   } catch (error) {
+//     console.error("Error during logout: ", error);
+//     next();
+//   }
+// });
