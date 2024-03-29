@@ -16,10 +16,10 @@ const userSchema = joi.object({
   password: joiPassword
     .string()
     .min(8)
-    // .minOfSpecialCharacters(1)
+    .minOfSpecialCharacters(1)
     .minOfLowercase(1)
     .minOfUppercase(1)
-    // .minOfNumeric(1)
+    .minOfNumeric(1)
     .noWhiteSpaces()
     .onlyLatinCharacters()
     .doesNotInclude(["password", "12345678", "qwertyui"])
