@@ -90,7 +90,7 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `Email or password is wrong` });
     }
 
-    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_KEY, {
       expiresIn: "1h",
     });
 

@@ -2,7 +2,7 @@ const express = require("express");
 const joi = require("joi");
 const router = express.Router();
 
-// const authenticateToken = require("../../middlewares/authenticate");
+const authenticateToken = require("../../middlewares/authenticate");
 
 const {
   listContacts,
@@ -29,7 +29,7 @@ const userSchemaFavorite = joi.object({
   favorite: joi.boolean(),
 });
 
-router.get("/", async (request, response, next) => {
+router.get("/", authenticateToken, async (request, response, next) => {
   try {
     const contactsList = await listContacts();
     response.json(contactsList);
