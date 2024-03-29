@@ -29,7 +29,7 @@ const userSchemaFavorite = joi.object({
   favorite: joi.boolean(),
 });
 
-router.get("/", authenticateToken, async (request, response, next) => {
+router.get("/", async (request, response, next) => {
   try {
     const contactsList = await listContacts();
     response.json(contactsList);
