@@ -19,7 +19,7 @@ const userSchema = joi.object({
     // .minOfSpecialCharacters(1)
     .minOfLowercase(1)
     .minOfUppercase(1)
-    .minOfNumeric(1)
+    // .minOfNumeric(1)
     .noWhiteSpaces()
     .onlyLatinCharacters()
     .doesNotInclude(["password", "12345678", "qwertyui"])
@@ -90,7 +90,7 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `Email or password is wrong` });
     }
 
-    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_KEY, {
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 

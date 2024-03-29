@@ -29,9 +29,10 @@ const userSchemaFavorite = joi.object({
   favorite: joi.boolean(),
 });
 
-router.get("/", async (request, response, next) => {
+router.get("/", authenticateToken, async (request, response, next) => {
   try {
-    const contactsList = await listContacts();
+    console.log(request.user._id);
+    const contactsList = await listContacts(request.user._id);
     response.json(contactsList);
     console.log("All contacts downloaded successfully");
   } catch (error) {
