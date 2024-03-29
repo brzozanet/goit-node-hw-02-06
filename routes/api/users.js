@@ -113,8 +113,7 @@ router.post("/login", async (request, response, next) => {
 
 router.get("/logout", async (request, response, next) => {
   try {
-    const body = request.body;
-    console.log(body);
+    // const loggedUser
   } catch (error) {
     console.error("Error during logout: ", error);
     next();

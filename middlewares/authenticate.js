@@ -12,7 +12,7 @@ const authenticateToken = async (request, response, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_KEY);
-    console.log(decoded);
+    // console.log(decoded);
   } catch (error) {
     console.error("Error during authentification: ", error);
     next();
