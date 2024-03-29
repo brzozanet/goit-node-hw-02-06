@@ -31,7 +31,6 @@ const userSchemaFavorite = joi.object({
 
 router.get("/", authenticateToken, async (request, response, next) => {
   try {
-    console.log(request.user._id);
     const contactsList = await listContacts(request.user._id);
     response.json(contactsList);
     console.log("All contacts downloaded successfully");

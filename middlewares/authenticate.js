@@ -12,9 +12,7 @@ const authenticateToken = async (request, response, next) => {
   try {
     const verify = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(verify.id);
-
     request.user = user;
-
     next();
   } catch (error) {
     console.error("Error during authentification: ", error);
