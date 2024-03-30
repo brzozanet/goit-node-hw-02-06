@@ -12,6 +12,7 @@ const {
   updateContact,
   updateStatusContact,
 } = require("../../service/index");
+const { default: mongoose } = require("mongoose");
 
 const contactSchemaPOST = joi.object({
   name: joi.string().min(5).required(),
@@ -43,6 +44,12 @@ router.get("/", authenticateToken, async (request, response, next) => {
 router.get("/:contactId", async (request, response, next) => {
   try {
     const contactId = request.params.contactId;
+
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      console.log("Incorrect data");
+      return response.status(400).json({ message: "Incorrect data" });
+    }
+
     const selectedContact = await getContactById(contactId);
 
     if (selectedContact) {
@@ -89,7 +96,7 @@ router.delete("/:contactId", async (request, response, next) => {
 
     if (isContactExist) {
       await removeContact(contactId);
-      response.status(200).json({ message: "contact deleted" });
+      response.status(200).json({ message: "Contact deleted" });
       console.log("Contact deleted successfully");
     } else {
       console.log("Contact not found");
