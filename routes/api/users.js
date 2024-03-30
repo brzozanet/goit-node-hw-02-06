@@ -117,44 +117,39 @@ router.get("/logout", authenticateToken, async (request, response, next) => {
   try {
     const user = request.user;
     console.log(user.token);
+
+    if (!user) {
+      return response.status(401).json({ message: `Not authorized` });
+    }
+
+    user.token = null;
+    await user.save();
+    console.log(user.token);
+    response.status(204).json({ message: `Logout successful` });
+    console.log("User login successfully");
   } catch (error) {
     console.error("Error during logout: ", error);
     next();
   }
 });
 
+router.get("/current", authenticateToken, async (request, response, next) => {
+  try {
+    const user = request.user;
+    console.log(user.token);
+
+    if (!user) {
+      return response.status(401).json({ message: `Not authorized` });
+    }
+
+    return response.json({
+      email: `${user.email}`,
+      subscription: `${user.subscription}`,
+    });
+  } catch (error) {
+    console.error("Something went wrong: ", error);
+    next();
+  }
+});
+
 module.exports = router;
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-// router.get("/logout", authenticateToken, async (request, response, next) => {
-//   try {
-//     const user = request.user;
-
-//     if (!user) {
-//       return response.status(401).json({ message: `Not authorized` });
-//     }
-
-//     user.token = null;
-//     await user.save();
-
-//     response.json({ message: "Logout successful" });
-//   } catch (error) {
-//     console.error("Error during logout: ", error);
-//     next();
-//   }
-// });
