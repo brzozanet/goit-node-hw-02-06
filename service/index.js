@@ -5,8 +5,8 @@ const listContacts = async (userId) => {
   return Contact.find({ owner: userId });
 };
 
-const getContactById = async (contactId) => {
-  return Contact.findOne({ _id: contactId });
+const getContactById = async (userId, contactId) => {
+  return Contact.findOne({ owner: userId, _id: contactId });
 };
 
 const addContact = async (contact) => {
@@ -29,8 +29,6 @@ const addUser = async (user) => {
   return Users.create(user);
 };
 
-const loginUser = async (user) => {};
-
 module.exports = {
   listContacts,
   getContactById,
@@ -39,5 +37,4 @@ module.exports = {
   updateContact,
   updateStatusContact,
   addUser,
-  loginUser,
 };

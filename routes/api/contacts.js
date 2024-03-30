@@ -41,29 +41,33 @@ router.get("/", authenticateToken, async (request, response, next) => {
   }
 });
 
-router.get("/:contactId", async (request, response, next) => {
-  try {
-    const contactId = request.params.contactId;
+router.get(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const contactId = request.params.contactId;
 
-    if (!mongoose.Types.ObjectId.isValid(contactId)) {
-      console.log("Incorrect data");
-      return response.status(400).json({ message: "Incorrect data" });
-    }
+      if (!mongoose.Types.ObjectId.isValid(contactId)) {
+        console.log("Incorrect data");
+        return response.status(400).json({ message: "Incorrect data" });
+      }
 
-    const selectedContact = await getContactById(contactId);
+      const selectedContact = await getContactById(request.user._id, contactId);
 
-    if (selectedContact) {
-      response.json(selectedContact);
-      console.log("Selected contact downloaded successfully");
-    } else {
-      console.log("Contact not found");
+      if (selectedContact) {
+        response.json(selectedContact);
+        console.log("Selected contact downloaded successfully");
+      } else {
+        console.log("Contact not found");
+        next();
+      }
+    } catch (error) {
+      console.error("Error reading contacts file: ", error);
       next();
     }
-  } catch (error) {
-    console.error("Error reading contacts file: ", error);
-    next();
   }
-});
+);
 
 router.post("/", async (request, response, next) => {
   try {
