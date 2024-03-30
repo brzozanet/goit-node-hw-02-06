@@ -66,7 +66,7 @@ router.post("/login", async (request, response, next) => {
   try {
     const body = request.body;
     const { error } = userSchema.validate(body);
-    const existingUser = await Users.findOne({ email: body.email });
+    const user = await Users.findOne({ email: body.email });
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -75,16 +75,13 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `${validatingErrorMessage}` });
     }
 
-    if (!existingUser) {
+    if (!user) {
       return response
         .status(401)
         .json({ message: `Email or password is wrong` });
     }
 
-    const validPassword = await bcrypt.compare(
-      body.password,
-      existingUser.password
-    );
+    const validPassword = await bcrypt.compare(body.password, user.password);
 
     if (!validPassword) {
       return response
@@ -92,21 +89,22 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `Email or password is wrong` });
     }
 
-    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1y",
     });
 
-    existingUser.token = token;
-    await existingUser.save();
+    user.token = token;
+    await user.save();
 
     response.json({
-      token: `${existingUser.token}`,
+      token: `${user.token}`,
       user: {
-        email: `${existingUser.email}`,
-        subscription: `${existingUser.subscription}`,
+        email: `${user.email}`,
+        subscription: `${user.subscription}`,
       },
     });
     console.log("User login successfully");
+    console.log("User token: ", user.token);
   } catch (error) {
     console.error("Error during login: ", error);
     next();
@@ -116,17 +114,16 @@ router.post("/login", async (request, response, next) => {
 router.get("/logout", authenticateToken, async (request, response, next) => {
   try {
     const user = request.user;
-    console.log(user.token);
 
-    if (!user) {
+    if (!user || !user.token) {
       return response.status(401).json({ message: `Not authorized` });
     }
 
     user.token = null;
     await user.save();
-    console.log(user.token);
     response.status(204).json({ message: `Logout successful` });
-    console.log("User login successfully");
+    console.log("User logout successfully");
+    console.log("User token: ", user.token);
   } catch (error) {
     console.error("Error during logout: ", error);
     next();
@@ -136,16 +133,17 @@ router.get("/logout", authenticateToken, async (request, response, next) => {
 router.get("/current", authenticateToken, async (request, response, next) => {
   try {
     const user = request.user;
-    console.log(user.token);
 
-    if (!user) {
+    if (!user || !user.token) {
+      console.log("No user is logged in");
       return response.status(401).json({ message: `Not authorized` });
     }
 
-    return response.json({
+    response.json({
       email: `${user.email}`,
       subscription: `${user.subscription}`,
     });
+    console.log("User token: ", user.token);
   } catch (error) {
     console.error("Something went wrong: ", error);
     next();
