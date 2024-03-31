@@ -69,7 +69,7 @@ router.get(
   }
 );
 
-router.post("/", async (request, response, next) => {
+router.post("/", authenticateToken, async (request, response, next) => {
   try {
     const body = request.body;
     const { error } = contactSchemaPOST.validate(body);
@@ -81,7 +81,7 @@ router.post("/", async (request, response, next) => {
         .json({ message: `${validatingErrorMessage}` });
     }
 
-    const addedContact = await addContact(body);
+    const addedContact = await addContact(request.user._id, body);
     response.json(addedContact);
     console.log("Contact added successfully");
   } catch (error) {
@@ -90,71 +90,91 @@ router.post("/", async (request, response, next) => {
   }
 });
 
-router.delete("/:contactId", async (request, response, next) => {
-  try {
-    const contactId = request.params.contactId;
-    const contactsList = await listContacts();
-    const isContactExist = !!contactsList.find(
-      (contact) => contact.id === contactId
-    );
+router.delete(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const contactId = request.params.contactId;
+      const contactsList = await listContacts();
+      const isContactExist = !!contactsList.find(
+        (contact) => contact.id === contactId
+      );
 
-    if (isContactExist) {
-      await removeContact(contactId);
-      response.status(200).json({ message: "Contact deleted" });
-      console.log("Contact deleted successfully");
-    } else {
-      console.log("Contact not found");
+      if (isContactExist) {
+        await removeContact(request.user._id, contactId);
+        response.status(200).json({ message: "Contact deleted" });
+        console.log("Contact deleted successfully");
+      } else {
+        console.log("Contact not found");
+        next();
+      }
+    } catch (error) {
+      console.error("Error during delete contact: ", error);
+      next(error);
+    }
+  }
+);
+
+router.patch(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const body = request.body;
+      const { error } = contactSchemaPATCH.validate(body);
+
+      if (error) {
+        const validatingErrorMessage = error.details[0].message;
+        return response
+          .status(400)
+          .json({ message: `${validatingErrorMessage}` });
+      }
+
+      const contactId = request.params.contactId;
+      const updatedContact = await updateContact(
+        request.user._id,
+        contactId,
+        body
+      );
+      response.status(200).json(updatedContact);
+      console.log("Contact updated successfully");
+    } catch (error) {
+      console.error("Error during updating contact: ", error);
       next();
     }
-  } catch (error) {
-    console.error("Error during delete contact: ", error);
-    next(error);
   }
-});
+);
 
-router.patch("/:contactId", async (request, response, next) => {
-  try {
-    const body = request.body;
-    const { error } = contactSchemaPATCH.validate(body);
+router.patch(
+  "/:contactId/favorite",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const body = request.body;
+      const { error } = userSchemaFavorite.validate(body);
 
-    if (error) {
-      const validatingErrorMessage = error.details[0].message;
-      return response
-        .status(400)
-        .json({ message: `${validatingErrorMessage}` });
+      if (error) {
+        const validatingErrorMessage = error.details[0].message;
+        return response
+          .status(400)
+          .json({ message: `${validatingErrorMessage}` });
+      }
+
+      const contactId = request.params.contactId;
+      const updatedStatusContact = await updateStatusContact(
+        request.user._id,
+        contactId,
+        body
+      );
+      response.status(200).json(updatedStatusContact);
+      console.log("Contact updated successfully");
+    } catch (error) {
+      console.error("Error during updating contact: ", error);
+      next();
     }
-
-    const contactId = request.params.contactId;
-    const updatedContact = await updateContact(contactId, body);
-    response.status(200).json(updatedContact);
-    console.log("Contact updated successfully");
-  } catch (error) {
-    console.error("Error during updating contact: ", error);
-    next();
   }
-});
-
-router.patch("/:contactId/favorite", async (request, response, next) => {
-  try {
-    const body = request.body;
-    const { error } = userSchemaFavorite.validate(body);
-
-    if (error) {
-      const validatingErrorMessage = error.details[0].message;
-      return response
-        .status(400)
-        .json({ message: `${validatingErrorMessage}` });
-    }
-
-    const contactId = request.params.contactId;
-    const updatedStatusContact = await updateStatusContact(contactId, body);
-    response.status(200).json(updatedStatusContact);
-    console.log("Contact updated successfully");
-  } catch (error) {
-    console.error("Error during updating contact: ", error);
-    next();
-  }
-});
+);
 
 module.exports = router;
 
