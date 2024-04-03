@@ -12,6 +12,7 @@ const Users = require("../../service/schemas/users");
 const { addUser } = require("../../service/index");
 
 const authenticateToken = require("../../middlewares/authenticate");
+const userLoggedIn = require("../../middlewares/userLoggedIn");
 
 const userSchema = joi.object({
   email: joi.string().email().required(),
@@ -131,24 +132,22 @@ router.get("/logout", authenticateToken, async (request, response, next) => {
   }
 });
 
-router.get("/current", authenticateToken, async (request, response, next) => {
-  try {
-    const user = request.user;
-
-    // if (!user || !user.token) {
-    //   console.log("No user is logged in");
-    //   return response.status(401).json({ message: `Not authorized` });
-    // }
-
-    response.json({
-      email: `${user.email}`,
-      subscription: `${user.subscription}`,
-    });
-    console.log("User token: ", user.token);
-  } catch (error) {
-    console.error("Something went wrong: ", error);
-    next();
+router.get(
+  "/current",
+  [authenticateToken, userLoggedIn],
+  async (request, response, next) => {
+    try {
+      const user = request.user;
+      response.json({
+        email: `${user.email}`,
+        subscription: `${user.subscription}`,
+      });
+      // console.log("User token: ", user.token);
+    } catch (error) {
+      console.error("Something went wrong: ", error);
+      next();
+    }
   }
-});
+);
 
 module.exports = router;

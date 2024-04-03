@@ -96,13 +96,12 @@ router.delete(
   async (request, response, next) => {
     try {
       const contactId = request.params.contactId;
-      const contactsList = await listContacts();
-      const isContactExist = !!contactsList.find(
-        (contact) => contact.id === contactId
+      const wasContactDeleted = await removeContact(
+        request.user._id,
+        contactId
       );
 
-      if (isContactExist) {
-        await removeContact(request.user._id, contactId);
+      if (wasContactDeleted) {
         response.status(200).json({ message: "Contact deleted" });
         console.log("Contact deleted successfully");
       } else {

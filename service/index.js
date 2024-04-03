@@ -14,7 +14,11 @@ const addContact = async (userId, contact) => {
 };
 
 const removeContact = async (userId, contactId) => {
-  return Contact.findOneAndDelete({ owner: userId, _id: contactId });
+  // return Contact.findOneAndDelete({ owner: userId, _id: contactId });
+  return await Contact.findOneAndDelete({
+    owner: userId,
+    _id: contactId,
+  }).select({ _id: 1 });
 };
 
 const updateContact = async (userId, contactId, body) => {
