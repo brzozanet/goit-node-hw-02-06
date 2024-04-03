@@ -10,7 +10,7 @@ const getContactById = async (userId, contactId) => {
 };
 
 const addContact = async (userId, contact) => {
-  return Contact.create({ owner: userId }, contact);
+  return Contact.create({ ...contact, owner: userId });
 };
 
 const removeContact = async (userId, contactId) => {

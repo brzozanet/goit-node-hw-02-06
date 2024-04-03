@@ -66,7 +66,6 @@ router.post("/login", async (request, response, next) => {
   try {
     const body = request.body;
     const { error } = userSchema.validate(body);
-    const user = await Users.findOne({ email: body.email });
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -74,6 +73,8 @@ router.post("/login", async (request, response, next) => {
         .status(400)
         .json({ message: `${validatingErrorMessage}` });
     }
+
+    const user = await Users.findOne({ email: body.email });
 
     if (!user) {
       return response
@@ -134,10 +135,10 @@ router.get("/current", authenticateToken, async (request, response, next) => {
   try {
     const user = request.user;
 
-    if (!user || !user.token) {
-      console.log("No user is logged in");
-      return response.status(401).json({ message: `Not authorized` });
-    }
+    // if (!user || !user.token) {
+    //   console.log("No user is logged in");
+    //   return response.status(401).json({ message: `Not authorized` });
+    // }
 
     response.json({
       email: `${user.email}`,
