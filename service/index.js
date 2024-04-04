@@ -1,6 +1,9 @@
 const Contact = require("./schemas/contacts");
 const Users = require("./schemas/users");
 
+const path = require("path");
+const fs = require("fs");
+
 const listContacts = async (userId) => {
   return Contact.find({ owner: userId });
 };
@@ -37,6 +40,20 @@ const addUser = async (user) => {
   return Users.create(user);
 };
 
+const updateAvatarUrl = async (userId, avatarUrl) => {
+  return Users.findByIdAndUpdate({ _id: userId }, { avatarUrl }, { new: true });
+};
+
+const deleteTempAvatarFile = (filename) => {
+  const filePath = path.join(process.cwd(), "temp", filename);
+  console.log(filePath);
+  try {
+    fs.unlinkSync(filePath);
+  } catch (err) {
+    console.error(`An error occured during deleting file: ${err}`);
+  }
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -45,4 +62,6 @@ module.exports = {
   updateContact,
   updateStatusContact,
   addUser,
+  updateAvatarUrl,
+  deleteTempAvatarFile,
 };
