@@ -1,6 +1,8 @@
 const express = require("express");
-const Joi = require("joi");
+const joi = require("joi");
 const router = express.Router();
+
+const authenticateToken = require("../../middlewares/authenticate");
 
 const {
   listContacts,
@@ -10,26 +12,27 @@ const {
   updateContact,
   updateStatusContact,
 } = require("../../service/index");
+const { default: mongoose } = require("mongoose");
 
-const userSchemaPOST = Joi.object({
-  name: Joi.string().min(5).required(),
-  email: Joi.string().email().required(),
-  phone: Joi.string().min(9).required(),
+const contactSchemaPOST = joi.object({
+  name: joi.string().min(5).required(),
+  email: joi.string().email().required(),
+  phone: joi.string().min(9).required(),
 });
 
-const userSchemaPATCH = Joi.object({
-  name: Joi.string().min(5),
-  email: Joi.string().email(),
-  phone: Joi.string().min(9),
+const contactSchemaPATCH = joi.object({
+  name: joi.string().min(5),
+  email: joi.string().email(),
+  phone: joi.string().min(9),
 });
 
-const userSchemaFavorite = Joi.object({
-  favorite: Joi.boolean(),
+const userSchemaFavorite = joi.object({
+  favorite: joi.boolean(),
 });
 
-router.get("/", async (request, response, next) => {
+router.get("/", authenticateToken, async (request, response, next) => {
   try {
-    const contactsList = await listContacts();
+    const contactsList = await listContacts(request.user._id);
     response.json(contactsList);
     console.log("All contacts downloaded successfully");
   } catch (error) {
@@ -38,28 +41,38 @@ router.get("/", async (request, response, next) => {
   }
 });
 
-router.get("/:contactId", async (request, response, next) => {
-  try {
-    const contactId = request.params.contactId;
-    const selectedContact = await getContactById(contactId);
+router.get(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const contactId = request.params.contactId;
 
-    if (selectedContact) {
-      response.json(selectedContact);
-      console.log("Selected contact downloaded successfully");
-    } else {
-      console.log("Contact not found");
+      if (!mongoose.Types.ObjectId.isValid(contactId)) {
+        console.log("Incorrect data");
+        return response.status(400).json({ message: "Incorrect data" });
+      }
+
+      const selectedContact = await getContactById(request.user._id, contactId);
+
+      if (selectedContact) {
+        response.json(selectedContact);
+        console.log("Selected contact downloaded successfully");
+      } else {
+        console.log("Contact not found");
+        next();
+      }
+    } catch (error) {
+      console.error("Error reading contacts file: ", error);
       next();
     }
-  } catch (error) {
-    console.error("Error reading contacts file: ", error);
-    next();
   }
-});
+);
 
-router.post("/", async (request, response, next) => {
+router.post("/", authenticateToken, async (request, response, next) => {
   try {
     const body = request.body;
-    const { error } = userSchemaPOST.validate(body);
+    const { error } = contactSchemaPOST.validate(body);
 
     if (error) {
       const validatingErrorMessage = error.details[0].message;
@@ -68,7 +81,7 @@ router.post("/", async (request, response, next) => {
         .json({ message: `${validatingErrorMessage}` });
     }
 
-    const addedContact = await addContact(body);
+    const addedContact = await addContact(request.user._id, body);
     response.json(addedContact);
     console.log("Contact added successfully");
   } catch (error) {
@@ -77,71 +90,90 @@ router.post("/", async (request, response, next) => {
   }
 });
 
-router.delete("/:contactId", async (request, response, next) => {
-  try {
-    const contactId = request.params.contactId;
-    const contactsList = await listContacts();
-    const isContactExist = !!contactsList.find(
-      (contact) => contact.id === contactId
-    );
+router.delete(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const contactId = request.params.contactId;
+      const wasContactDeleted = await removeContact(
+        request.user._id,
+        contactId
+      );
 
-    if (isContactExist) {
-      await removeContact(contactId);
-      response.status(200).json({ message: "contact deleted" });
-      console.log("Contact deleted successfully");
-    } else {
-      console.log("Contact not found");
+      if (wasContactDeleted) {
+        response.status(200).json({ message: "Contact deleted" });
+        console.log("Contact deleted successfully");
+      } else {
+        console.log("Contact not found");
+        next();
+      }
+    } catch (error) {
+      console.error("Error during delete contact: ", error);
+      next(error);
+    }
+  }
+);
+
+router.patch(
+  "/:contactId",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const body = request.body;
+      const { error } = contactSchemaPATCH.validate(body);
+
+      if (error) {
+        const validatingErrorMessage = error.details[0].message;
+        return response
+          .status(400)
+          .json({ message: `${validatingErrorMessage}` });
+      }
+
+      const contactId = request.params.contactId;
+      const updatedContact = await updateContact(
+        request.user._id,
+        contactId,
+        body
+      );
+      response.status(200).json(updatedContact);
+      console.log("Contact updated successfully");
+    } catch (error) {
+      console.error("Error during updating contact: ", error);
       next();
     }
-  } catch (error) {
-    console.error("Error during delete contact: ", error);
-    next(error);
   }
-});
+);
 
-router.patch("/:contactId", async (request, response, next) => {
-  try {
-    const body = request.body;
-    const { error } = userSchemaPATCH.validate(body);
+router.patch(
+  "/:contactId/favorite",
+  authenticateToken,
+  async (request, response, next) => {
+    try {
+      const body = request.body;
+      const { error } = userSchemaFavorite.validate(body);
 
-    if (error) {
-      const validatingErrorMessage = error.details[0].message;
-      return response
-        .status(400)
-        .json({ message: `${validatingErrorMessage}` });
+      if (error) {
+        const validatingErrorMessage = error.details[0].message;
+        return response
+          .status(400)
+          .json({ message: `${validatingErrorMessage}` });
+      }
+
+      const contactId = request.params.contactId;
+      const updatedStatusContact = await updateStatusContact(
+        request.user._id,
+        contactId,
+        body
+      );
+      response.status(200).json(updatedStatusContact);
+      console.log("Contact updated successfully");
+    } catch (error) {
+      console.error("Error during updating contact: ", error);
+      next();
     }
-
-    const contactId = request.params.contactId;
-    const updatedContact = await updateContact(contactId, body);
-    response.status(200).json(updatedContact);
-    console.log("Contact updated successfully");
-  } catch (error) {
-    console.error("Error during updating contact: ", error);
-    next();
   }
-});
-
-router.patch("/:contactId/favorite", async (request, response, next) => {
-  try {
-    const body = request.body;
-    const { error } = userSchemaFavorite.validate(body);
-
-    if (error) {
-      const validatingErrorMessage = error.details[0].message;
-      return response
-        .status(400)
-        .json({ message: `${validatingErrorMessage}` });
-    }
-
-    const contactId = request.params.contactId;
-    const updatedStatusContact = await updateStatusContact(contactId, body);
-    response.status(200).json(updatedStatusContact);
-    console.log("Contact updated successfully");
-  } catch (error) {
-    console.error("Error during updating contact: ", error);
-    next();
-  }
-});
+);
 
 module.exports = router;
 
