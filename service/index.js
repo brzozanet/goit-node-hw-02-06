@@ -49,8 +49,8 @@ const deleteTempAvatarFile = (filename) => {
   console.log(filePath);
   try {
     fs.unlinkSync(filePath);
-  } catch (err) {
-    console.error(`An error occured during deleting file: ${err}`);
+  } catch (error) {
+    console.error(`An error occured during deleting file: ${error}`);
   }
 };
 
