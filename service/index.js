@@ -1,8 +1,8 @@
+const fs = require("fs");
+const path = require("path");
+
 const Contact = require("./schemas/contacts");
 const Users = require("./schemas/users");
-
-const path = require("path");
-const fs = require("fs");
 
 const listContacts = async (userId) => {
   return Contact.find({ owner: userId });
@@ -46,7 +46,6 @@ const updateAvatarUrl = async (userId, avatarUrl) => {
 
 const deleteTempAvatarFile = (filename) => {
   const filePath = path.join(process.cwd(), "temp", filename);
-  console.log(filePath);
   try {
     fs.unlinkSync(filePath);
   } catch (error) {

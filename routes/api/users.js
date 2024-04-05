@@ -1,13 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const gravatar = require("gravatar");
-const multer = require("multer");
-const jimp = require("jimp");
-const path = require("path");
-const fs = require("fs");
 require("dotenv").config();
+const bcrypt = require("bcrypt");
+const express = require("express");
+const fs = require("fs");
+const gravatar = require("gravatar");
+const jimp = require("jimp");
+const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const path = require("path");
+const router = express.Router();
 
 const joi = require("joi");
 const { joiPasswordExtendCore } = require("joi-password");
@@ -203,7 +203,6 @@ router.patch(
           deleteTempAvatarFile(file.filename);
           return response.status(200).json({ avatarURL: `${avatarUrl}` });
         })
-
         .catch((err) => {
           console.error(err);
         });
