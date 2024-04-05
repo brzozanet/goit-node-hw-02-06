@@ -3,7 +3,7 @@ const userLoggedIn = async (request, response, next) => {
     const user = request.user;
 
     if (user.token === null) {
-      return response.status(401).json({ message: `Unauthorized attempt` });
+      return response.status(401).json({ message: `Not authorized` });
     }
 
     next();

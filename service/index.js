@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 const Contact = require("./schemas/contacts");
 const Users = require("./schemas/users");
 
@@ -37,6 +40,19 @@ const addUser = async (user) => {
   return Users.create(user);
 };
 
+const updateAvatarUrl = async (userId, avatarUrl) => {
+  return Users.findByIdAndUpdate({ _id: userId }, { avatarUrl }, { new: true });
+};
+
+const deleteTempAvatarFile = (filename) => {
+  const filePath = path.join(process.cwd(), "temp", filename);
+  try {
+    fs.unlinkSync(filePath);
+  } catch (error) {
+    console.error(`An error occured during deleting file: ${error}`);
+  }
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -45,4 +61,6 @@ module.exports = {
   updateContact,
   updateStatusContact,
   addUser,
+  updateAvatarUrl,
+  deleteTempAvatarFile,
 };
