@@ -6,7 +6,9 @@ const gravatar = require("gravatar");
 const jimp = require("jimp");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const nanoid = require("nanoid-esm");
 const path = require("path");
+
 const router = express.Router();
 
 const joi = require("joi");
@@ -22,6 +24,7 @@ const {
 
 const authenticateToken = require("../../middlewares/authenticate");
 const userLoggedIn = require("../../middlewares/userLoggedIn");
+const mailer = require("../../mailer/mailer");
 
 const userSchema = joi.object({
   email: joi.string().email().required(),
@@ -80,11 +83,18 @@ router.post("/signup", async (request, response, next) => {
       d: "wavatar",
     });
 
+    const verificationToken = nanoid();
+
     const addedUser = await addUser({
       email: body.email,
       password: hashedPassword,
       avatarUrl,
+      verificationToken,
     });
+
+    // send email
+    mailer.sendVerificationEmail(body.email, next, verificationToken);
+
     response.json(addedUser);
     console.log("User signup successfully");
   } catch (error) {
@@ -212,5 +222,26 @@ router.patch(
     }
   }
 );
+
+router.get("/verify/:verificationToken", async (request, response, next) => {
+  try {
+    const { verificationToken } = request.params;
+    const user = await Users.findOneAndUpdate(
+      { verificationToken },
+      { verify: true, verificationToken: null },
+      { new: true }
+    );
+    console.log(user);
+
+    if (user) {
+      return response.status(200).json({ message: "Verification successful" });
+    } else {
+      next();
+    }
+  } catch (error) {
+    console.error("Something went wrong: ", error);
+    next(error); // FIXME: add (error) in other next()
+  }
+});
 
 module.exports = router;
