@@ -1,22 +1,21 @@
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const sendgridMail = require("@sendgrid/mail");
+sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendVerificationEmail = async (userEmail, next, verificationToken) => {
-  const msg = {
+  const verificationMessage = {
     // to: `${userEmail}`,
-    to: "pawel@brzoza.net",
-    from: "pawel@brzoza.net",
-    subject: "Confirm your email address",
-    text: "and easy to do anywhere, even with Node.js",
-    html: "<strong>and easy to do anywhere, even with Node.js</strong>",
+    to: `pawel@brzoza.net`,
+    from: `pawel@brzoza.net`,
+    subject: `Confirm your email address`,
+    text: `Click on the link to confirm your account: http://localhost:3000/api/users/verify/:${verificationToken}`,
+    html: `<strong>Click on the link</strong> to confirm your account: http://localhost:3000/api/users/verify/:${verificationToken}`,
   };
 
   try {
-    const email = await sgMail.send(msg);
-    console.log(email);
+    const email = await sendgridMail.send(verificationMessage);
     return email;
   } catch (error) {
-    console.error(error);
+    console.error("Something went wrong: ", error);
     next(error);
   }
 };
