@@ -123,6 +123,12 @@ router.post("/login", async (request, response, next) => {
         .json({ message: `Email or password is wrong` });
     }
 
+    if (!user.verify) {
+      return response
+        .status(401)
+        .json({ message: `The account has not been confirmed yet` });
+    }
+
     const validPassword = await bcrypt.compare(body.password, user.password);
 
     if (!validPassword) {
@@ -240,7 +246,7 @@ router.get("/verify/:verificationToken", async (request, response, next) => {
     }
   } catch (error) {
     console.error("Something went wrong: ", error);
-    next(error); // FIXME: add (error) in other next()
+    next(); // FIXME: next(error)?
   }
 });
 
