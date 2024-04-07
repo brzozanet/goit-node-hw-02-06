@@ -92,7 +92,6 @@ router.post("/signup", async (request, response, next) => {
       verificationToken,
     });
 
-    // send email
     mailer.sendVerificationEmail(body.email, next, verificationToken);
 
     response.json(addedUser);
@@ -243,6 +242,33 @@ router.get("/verify/:verificationToken", async (request, response, next) => {
     } else {
       next();
     }
+  } catch (error) {
+    console.error("Something went wrong: ", error);
+    next();
+  }
+});
+
+router.post("/verify", async (request, response, next) => {
+  try {
+    const { email } = request.body;
+    const user = await Users.findOne({ email });
+
+    if (!email) {
+      return response
+        .status(400)
+        .json({ message: `Missing required field email` });
+    }
+
+    if (user.verify) {
+      return response
+        .status(400)
+        .json({ message: `Verification has already been passed` });
+    }
+
+    mailer.sendVerificationEmail(user.email, next, user.verificationToken);
+    return response
+      .status(200)
+      .json({ message: `Verification email sent again` });
   } catch (error) {
     console.error("Something went wrong: ", error);
     next();
