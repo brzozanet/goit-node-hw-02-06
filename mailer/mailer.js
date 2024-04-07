@@ -7,8 +7,8 @@ const sendVerificationEmail = async (userEmail, next, verificationToken) => {
     to: `pawel@brzoza.net`,
     from: `pawel@brzoza.net`,
     subject: `Confirm your email address`,
-    text: `Click on the link to confirm your account: http://localhost:3000/api/users/verify/:${verificationToken}`,
-    html: `<strong>Click on the link</strong> to confirm your account: http://localhost:3000/api/users/verify/:${verificationToken}`,
+    text: `Click on the link to confirm your account: http://localhost:3000/api/users/verify/${verificationToken}`,
+    html: `<strong>Click on the link</strong> to confirm your account: http://localhost:3000/api/users/verify/${verificationToken}`,
   };
 
   try {

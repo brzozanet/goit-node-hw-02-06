@@ -237,7 +237,6 @@ router.get("/verify/:verificationToken", async (request, response, next) => {
       { verify: true, verificationToken: null },
       { new: true }
     );
-    console.log(user);
 
     if (user) {
       return response.status(200).json({ message: "Verification successful" });
@@ -246,7 +245,7 @@ router.get("/verify/:verificationToken", async (request, response, next) => {
     }
   } catch (error) {
     console.error("Something went wrong: ", error);
-    next(); // FIXME: next(error)?
+    next();
   }
 });
 
