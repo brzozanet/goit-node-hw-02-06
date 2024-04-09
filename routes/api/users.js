@@ -92,7 +92,7 @@ router.post("/signup", async (request, response, next) => {
       verificationToken,
     });
 
-    mailer.sendVerificationEmail(body.email, next, verificationToken);
+    await mailer.sendVerificationEmail(body.email, next, verificationToken);
 
     response.json(addedUser);
     console.log("User signup successfully");
@@ -265,7 +265,11 @@ router.post("/verify", async (request, response, next) => {
         .json({ message: `Verification has already been passed` });
     }
 
-    mailer.sendVerificationEmail(user.email, next, user.verificationToken);
+    await mailer.sendVerificationEmail(
+      user.email,
+      next,
+      user.verificationToken
+    );
     return response
       .status(200)
       .json({ message: `Verification email sent again` });
