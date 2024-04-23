@@ -143,7 +143,7 @@ router.post("/login", async (request, response, next) => {
     user.token = token;
     await user.save();
 
-    response.json({
+    response.status(200).json({
       token: `${user.token}`,
       user: {
         email: `${user.email}`,
